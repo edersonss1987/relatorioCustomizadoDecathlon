@@ -1,3 +1,67 @@
+<<<<<<< HEAD
+=======
+# Ambiente virtual
+venv/
+.env
+
+# Python
+__pycache__/
+*.pyc
+
+# Jupyter
+.ipynb_checkpoints/
+<<<<<<< HEAD
+=======
+.ipynb
+*.ipynb
+>>>>>>> 06ebf5f (add requirements)
+
+# VS Code
+.vscode/
+
+# Sistema
+.DS_Store
+
+
+# ========================
+# Dados
+# ========================
+*.csv
+*.xlsx
+*.xls
+*.json
+
+# ========================
+# Imagens
+# ========================
+*.png
+*.jpg
+*.jpeg
+
+# ========================
+# Ambiente virtual
+# ========================
+venv/
+.env
+
+# ========================
+# Python
+# ========================
+__pycache__/
+*.pyc
+
+# ========================
+# VS Code
+# ========================
+.vscode/
+
+# ========================
+# Sistema
+# ========================
+.DS_Store
+Thumbs.db
+
+>>>>>>> 882ab58 (primeiro commit, já com acesso ao end-point da API e gereção de relatório solicitado pelo gestor responsável de segurança do trabalho)
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[codz]
@@ -204,4 +268,8 @@ cython_debug/
 # Marimo
 marimo/_static/
 marimo/_lsp/
+<<<<<<< HEAD
 __marimo__/
+=======
+__marimo__/
+>>>>>>> 882ab58 (primeiro commit, já com acesso ao end-point da API e gereção de relatório solicitado pelo gestor responsável de segurança do trabalho)
