@@ -4,6 +4,10 @@
 
 ### Customização de relatório solicitado para o Centro de distribuição Decathlon usando a API do Sistema de controle de acesso.
 
+Motivação:
+
+    Durante a evacuação do Centro Logístico, torna-se essencial a identificação precisa e objetiva dos colaboradores que ainda permanecem nas dependências da empresa, garantindo que as equipes responsáveis possam direcionar o resgate de forma rápida, organizada e eficiente, reduzindo riscos e assegurando a integridade de todos os envolvidos.
+
 
 
 Este projeto foi desenvolvido com o objetivo de automatizar a extração e o tratamento de dados provenientes de uma API corporativa, transformando informações operacionais em relatório estruturado e personalizados para apoio à gestão da área de Segurança do Trabalho. A solução surgiu a partir da necessidade de reduzir processos manuais, minimizar erros e acelerar a geração de informações estratégicas que anteriormente demandavam tempo elevado de consolidação e conferência.
