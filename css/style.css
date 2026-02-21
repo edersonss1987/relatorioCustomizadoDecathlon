@@ -1,0 +1,111 @@
+.block-container {
+    padding-top: 3rem;
+}
+
+
+@keyframes piscar {
+    1000% {
+        background-color: #ff4b4b;
+    }
+
+    100% {
+        background-color: #ebacac;
+    }
+
+    100% {
+        background-color: #ff4b4b;
+    }
+}
+
+.card-alerta {
+
+
+    font-family: Inter, ui-sans-serif, system-ui, Helvetica, Arial, sans-serif;
+    font-size: 25px;
+    font-weight: 600;
+    line-height: 1.4;
+
+    padding: 20px;
+    border-radius: 12px;
+    text-align: center;
+    animation: piscar 1s infinite;
+}
+
+.card-alerta:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 14px 28px rgba(0, 0, 0, 0.25);
+}
+
+
+.card-purple {
+    padding: 22px;
+    border-radius: 18px;
+    text-align: center;
+
+    font-family: Inter, ui-sans-serif, system-ui, Helvetica, Arial, sans-serif;
+    font-size: 25px;
+    font-weight: 600;
+    line-height: 1.4;
+
+    color: white;
+    background: linear-gradient(135deg, #7c3aed, #4c1d95);
+
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.card-purple:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 14px 28px rgba(0, 0, 0, 0.25);
+}
+
+.card-blue {
+    padding: 22px;
+    border-radius: 18px;
+    text-align: center;
+
+    font-family: Inter, ui-sans-serif, system-ui, Helvetica, Arial, sans-serif;
+    font-size: 25px;
+    font-weight: 600;
+    line-height: 1.4;
+
+    color: white;
+    background: linear-gradient(135deg, #2563eb, #1e3a8a);
+
+    box-shadow: 0 8px 20px rgba(37, 99, 235, 0.25);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.card-blue:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 14px 28px rgba(37, 99, 235, 0.35);
+}
+
+.card-green {
+    padding: 22px;
+    border-radius: 18px;
+    text-align: center;
+
+    font-family: Inter, ui-sans-serif, system-ui, Helvetica, Arial, sans-serif;
+    font-size: 25px;
+    font-weight: 600;
+    line-height: 1.4;
+
+    color: white;
+    background: linear-gradient(135deg, #16a34a, #065f46);
+
+    box-shadow: 0 8px 20px rgba(22, 163, 74, 0.25);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.card-green:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 14px 28px rgba(22, 163, 74, 0.35);
+}
+
+.divisor {
+    height: 2px;
+    background-color: #e0e0e0;
+    margin: 25px 0 25px 0;
+    border-radius: 5px;
+}

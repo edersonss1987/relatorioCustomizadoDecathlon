@@ -1,27 +1,45 @@
+#################################################################################################################################################
+#################################################################################################################################################
+################################################### IMPORTAÇÃO DOS BIBLIOTECAS  #################################################################
+#################################################################################################################################################
+#################################################################################################################################################
+
 import requests
 import json
-import time
-from getpass import getpass
-import datetime
+
 import pandas as pd
 import re
 import numpy as np
-from datetime import timedelta
 import os
-from dotenv import load_dotenv
+import streamlit as st
 
+import time
+import datetime
+
+from datetime import timedelta
+from dotenv import load_dotenv
+from getpass import getpass
+from streamlit_autorefresh import st_autorefresh
+
+
+# Atualiza a cada X segundos (30000 ms) = 30segundos
+st_autorefresh(interval=60000, key="auto_refresh")
+
+
+#################################################################################################################################################
+#################################################################################################################################################
+############################################## DEFININDO AS FUNÇÕES QUE UTEIS DE APP  ###########################################################
+#################################################################################################################################################
+#################################################################################################################################################
 load_dotenv()
 
 
-'''#################################################################################################################################################'''
-####################################################################################################################################################
-'''#################################################################################################################################################'''
+def carregar_css(caminho):
+    with open(caminho) as f:
+        st.markdown(f"<style>{f.read()}</style>", unsafe_allow_html=True)
 
-#########################################################################################
-#########################################################################################
-#########################################################################################
-##################      Criando as funções de execução     ##############################
-# verificando email valido
+
+carregar_css("css/style.css")
 
 
 def validar_email(email):
@@ -114,23 +132,18 @@ def convert_timestamp_para_data_hora(timestamp: float):
     data_hora_formatada = time.strftime('%d/%m/%Y %H:%M:%S', data_hora_local)
     return data_hora_formatada
 
-#########################################################################################
-#########################################################################################
-#########################################################################################
+#################################################################################################################################################
+#################################################################################################################################################
+##################################################### CRIANDO AS BASES DA API  ##################################################################
+#################################################################################################################################################
+#################################################################################################################################################
 
-
-'''#################################################################################################################################################'''
-####################################################################################################################################################
-'''#################################################################################################################################################'''
-
-
-''' ############################# BASE DA API ################################################### '''
 
 # base da tela inicial
 base = "https://main.idsecure.com.br:5000"
 
 # base de API Relatórios
-base_rel = "https://report.idsecure.com.br:5000"
+base_rel = "https://report.idsecure.com.br:5000/api/v1/accesslog/logs"
 
 # base de login na plataforma
 login_api = f'{base}/api/v1/operators/login'
@@ -140,16 +153,14 @@ login_api = f'{base}/api/v1/operators/login'
 EMAIL = os.getenv('email')
 PSW = os.getenv('psw')
 TOKEN = os.getenv('tokenDeAcesso')
-''' ################################################################################ '''
-# Logando na API
 
 
-'''
 #################################################################################################################################################
-####################################################################################################################################################
-###################################### INSIRA O E-MAIL AQUI PARA LOGAR NA API  #####################################################################
+#################################################################################################################################################
+############################################## INSIRA O E-MAIL AQUI PARA LOGAR NA API  ##########################################################
+#################################################################################################################################################
+#################################################################################################################################################
 
-'''
 
 # Loop para solicitar ao usuário um e-mail válido
 # O loop continuará solicitando um e-mail até que um formato válido seja fornecido, garantindo que o usuário possa prosseguir apenas com um e-mail correto.
@@ -157,32 +168,32 @@ user = None
 while True:
 
     user = EMAIL
-    if validar_email(user):
+    if validar_email(EMAIL):
         # print(f"Digite a senha por favor!\n")
         break
     else:
         print("E-mail no formato inválido.\nTente novamente.")
         break
 
-'''
+
 #################################################################################################################################################
-####################################################################################################################################################
-###################################### INSIRA O SENHA DE ACESSO AO SISTEMA  #####################################################################
-
-'''
-
+#################################################################################################################################################
+############################################ INSIRA O SENHA DE ACESSO AO SISTEMA  ###############################################################
+#################################################################################################################################################
+#################################################################################################################################################
 
 
 # usando as credenciais para logar na plataforma
 login_api_user = {
     "email": f"{EMAIL}",
     "password": f"{PSW}",
-    # "tenantId": "2785",
+    "tenantId": "2785",  # especificando a conta de acesso
 }
 
 
 # requisição de login no end-point
 logado = requests.post(login_api, json=login_api_user)
+
 
 if logado.status_code == 200:
     # imprimindo o conteudo da pagina apos login
@@ -191,56 +202,49 @@ else:
     # imprimindo o conteudo da pagina apos login
     print("Erro ao realizar login")
     login_api_user = {
-    "email": input(f'Email de acesso:   '),
-    "password": getpass(prompt='Senha de acesso:   '),
-    # "tenantId": "2785",
+        "email": input(f'Email de acesso:   '),
+        "password": getpass(prompt='Senha de acesso:   '),
+        "tenantId": "2785",  # especificando a conta de acesso
     }
-    logado = requests.post(login_api, json=login_api_user)        
-        
+    logado = requests.post(login_api, json=login_api_user)
 
 
-
-
-
-
-'''#################################################################################################################################################'''
-####################################################################################################################################################
-'''#################################################################################################################################################'''
-
+#################################################################################################################################################
+#################################################################################################################################################
+################################################## CONEXÃO COM END-POINT DA API  ################################################################
+#################################################################################################################################################
+#################################################################################################################################################
 
 # criando o contxto da pagina após login
-content_login = json.loads(logado.text)
+content_login = json.loads(logado.content)
+token = content_login['data']['token']
 
 
 # os dados abaixo podem ser printados para verificar o login e o acesso a API, mas não são necessários para o funcionamento
-email_logado = json.loads(logado.text)['data'][0]['name']
+email_logado = json.loads(logado.text)
 
-print(f'Email logado: {email_logado}')
 
 # criando o cabeçalho def
 headers = {
     "Accept": "application/json, text/plain, */*",
     "Accept-Encoding": "gzip, deflate, br, zstd",
     "Accept-Language": "pt-BR,pt;q=0.9,en-US;q=0.8,en;q=0.7",
-    "Authorization": f"Bearer {TOKEN}"  # Substitua pelo token real
+    "Authorization": f"Bearer {token}"  # Substitua pelo token real
 }
 
 
-'''#################################################################################################################################################'''
-####################################################################################################################################################
-'''#################################################################################################################################################'''
+#################################################################################################################################################
+#################################################################################################################################################
+################################################# MANIPULAÇÃO DE DATAS PARA CONSULTAS  ##########################################################
+#################################################################################################################################################
+#################################################################################################################################################
 
-
-'''
 ##################################################
 ####### PESSOAS QUE FIZERAM O ACESO HOJE #########
 ##################################################
-'''
 
 
 inicio_time_filtro = time.time()
-print(f'Estamos filtrando a data {inicio_time_filtro}')
-
 hoje = datetime.datetime.now()
 data_hora = hoje - timedelta(hours=3)
 hojeFotmated = data_hora.strftime('%Y-%m-%d %H:%M')
@@ -248,46 +252,46 @@ hojeFotmated = data_hora.strftime('%Y-%m-%d %H:%M')
 # mesAnterior = hoje -  datetime.timedelta(days=30)
 # mesAnterior = mesAnterior.strftime('%Y-%m-%d 00:00')
 
-# definindo a data inicial do filtro, para o primeiro segundo do dia
 primeiraHoraHoje = data_hora
-# formatando a data para o formato documentado pela API
 primeiraHoraHoje = primeiraHoraHoje.strftime('%Y-%m-%d 00:01')
 
-'''
-# opção de input manual para data e hora inicial do filtro, 
-# caso queira alterar a data e hora de inicio do filtro, 
-# descomente a linha abaixo e comente a linha de definição da variável "data_hora_inicial" logo abaixo
-data_hora_inicial = input(f'Incio do relatório (Formato: {primeiraHoraHoje})   ')
-'''
-
-# definindo a data inicial do filtro, para o primeiro segundo do dia
+# data_hora_inicial = input(f'Incio do relatório (Formato: {primeiraHoraHoje})   ')
 data_hora_inicial = primeiraHoraHoje
-# data_hora_inicial = hoje formatada conforme documentadação da API
 data_hora_inicial = str(convert_data_hora_para_timestamp(data_hora_inicial))
 
 
-# definido a data final do filtro, para o ultimo segundo do dia
 data_hora_final = data_hora
-# formatando a data para o formato documentado pela API
 data_hora_final = data_hora_final.strftime('%Y-%m-%d 23:59')
-
-'''
-# opção de input manual para data e hora final do filtro,
-# caso queira alterar a data e hora de fim do filtro,
-data_hora_final = input(f'Data fim do relatório (Formato: {hojeFotmated})   ')
-'''
-# conversão da data final para o formato documentado pela API
+# data_hora_final = input(f'Data fim do relatório (Formato: {hojeFotmated})   ')
+# data_hora_final =hojeFotmated
 data_hora_final = str(convert_data_hora_para_timestamp(data_hora_final))
 
-# acessando o end-point do dia, utilizando o filtro de data e hora
-acessos_hoje = requests.get(
-    f'https://report.idsecure.com.br:5000/api/v1/accesslog/logs?pageSize=100000&pageNumber=1&sortOrder=desc&sortField=Time&dtStart={data_hora_inicial}&dtEnd={data_hora_final}&getPhotos=false', headers=headers)
+#################################################################################################################################################
+#################################################################################################################################################
+#################################################### CONSUMINDO DADOS DA API  ###################################################################
+#################################################################################################################################################
+#################################################################################################################################################
 
+
+acessos_hoje = requests.get(
+    f'{base_rel}?pageSize=500&pageNumber=1&sortOrder=desc&sortField=Time&dtStart={data_hora_inicial}&dtEnd={data_hora_final}&getPhotos=false', headers=headers)
+
+
+acessos_hoje.json()
 # convertendo o resultado da requisição para json
 acessos_hoje = acessos_hoje.json()
 # acessando a chave "data" do resultado da requisição, que contém os dados de acesso
 acessos_hoje = acessos_hoje['data']['data']
 # convertendo o resultado para um dataframe do pandas
+
+
+#################################################################################################################################################
+#################################################################################################################################################
+################################################# MANIPULAÇÃO DOS DADOS USANDO PANDAS  ##########################################################
+#################################################################################################################################################
+#################################################################################################################################################
+
+
 acessos_hoje = pd.DataFrame(acessos_hoje)
 
 
@@ -336,6 +340,10 @@ teviram_acesso_hoje = teviram_acesso_hoje.loc[teviram_acesso_hoje.groupby(
     'personName')['time'].idxmax()]
 
 
+#################################################################################################################################################
+############  INICIO------------------------            FILTROS para o PANDAS/STREAMLIT                                  ########################
+#################################################################################################################################################
+
 # removendo os acessos duplicados, para evitar que pessoas que deram entrada e saída mais de uma vez, sejam contabilizadas mais de uma vez.
 teviram_acesso_hoje = teviram_acesso_hoje.drop_duplicates(subset=[
                                                           'personName'])
@@ -350,6 +358,7 @@ teve_acesso_de_entrada_hoje = teviram_acesso_hoje[teviram_acesso_hoje['deviceNam
 teve_acesso_de_saida_hoje = teviram_acesso_hoje[teviram_acesso_hoje['deviceName'].isin(
     saidas)]
 
+
 # precisamos filtar pessoas que deram entada e não derem saída
 pessoas_sem_saida = teve_acesso_de_entrada_hoje[
     ~teve_acesso_de_entrada_hoje['personName'].isin(
@@ -357,8 +366,119 @@ pessoas_sem_saida = teve_acesso_de_entrada_hoje[
     )
 ]
 
-print(f'Temos:{len(pessoas_sem_saida)}',
-      'pessoas que não saíram, nem acessaram o ponto de encontro')
+ponto_de_encontro = teve_acesso_de_saida_hoje.loc[
+    teve_acesso_de_saida_hoje['deviceName'] == "Ponto de encontro"]
 
-print(f"Temos:{len(teve_acesso_de_saida_hoje.loc[teve_acesso_de_saida_hoje['deviceName'] == 'Ponto de encontro'])}",
-      "pessoas que acessaram o ponto de encontro")
+#################################################################################################################################################
+############  FIM------------------------            FILTROS para o PANDAS/STREAMLIT                                  ###########################
+#################################################################################################################################################
+
+#################################################################################################################################################
+#################################################################################################################################################
+################################################ PLOTANDO OS DADOS USANDO O STREAMLIT  ##########################################################
+#################################################################################################################################################
+#################################################################################################################################################
+
+
+# _____________________________________________________________________________________________
+
+
+#################################################################################################################################################
+###################################                   KPI'S (CARDS)                   ###########################################################
+#################################################################################################################################################
+
+
+st.set_page_config(layout="wide")
+
+col1, col2, col3, col4 = st.columns([2, 2, 2, 2])
+total_sem_saida = len(pessoas_sem_saida)
+with col1:
+    if total_sem_saida > 0:
+        st.markdown(
+            f"""
+            <div class="card-alerta">
+                🚨 Pessoas sem saída<br>
+                {total_sem_saida}
+            </div>
+            """,
+            unsafe_allow_html=True
+        )
+    else:
+        st.metric("Pessoas sem saída", total_sem_saida)
+
+with col2:
+    st.markdown(
+        f"""
+            <div class="card-green">
+                Já saíram <br>
+                {len(teve_acesso_de_saida_hoje)}
+            </div>
+            """,
+        unsafe_allow_html=True
+    )
+
+with col3:
+    st.markdown(
+        f"""
+        <div class="card-blue">
+        Entradas/Saídas<br>
+        {len(teviram_acesso_hoje)}
+        </div>
+        """,
+        unsafe_allow_html=True
+    )
+
+with col4:
+    st.markdown(
+        f"""
+        <div class="card-purple">
+        Ponto de Encontro<br>
+        {len(ponto_de_encontro)}
+        <div>
+        """,
+        unsafe_allow_html=True
+    )
+
+
+st.markdown('<div class="divisor"></div>', unsafe_allow_html=True)
+# ______________________________________________________________________________________________
+
+#################################################################################################################################################
+###################################                   BODY (DADOS)                     ##########################################################
+#################################################################################################################################################
+col1, col2, col3 = st.columns([3, 1, 2])
+
+with col1:
+    st.subheader("🚨 PESSOAS DENTRO")
+
+    df_dentro = pessoas_sem_saida[['personName',
+                                   'deviceName']].reset_index(drop=True)
+    df_dentro.index = range(1, len(df_dentro) + 1)
+
+    st.dataframe(
+        df_dentro,
+        use_container_width=True,
+        height=400
+    )
+with col2:
+    st.empty()
+
+
+with col3:
+    st.subheader("✅ SAÍRAM")
+
+    df_saida = teve_acesso_de_saida_hoje[['personName']].reset_index(drop=True)
+    df_saida.index = range(1, len(df_saida) + 1)
+
+    st.dataframe(
+        df_saida,
+        use_container_width=True,
+        height=400
+    )
+
+
+#################################################################################################################################################
+###################################                   SIDEBAR (FILTROS)                     #####################################################
+#################################################################################################################################################
+agora = datetime.datetime.now().strftime('%H:%M:%S')
+st.sidebar.write(agora)
