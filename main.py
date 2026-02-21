@@ -347,8 +347,7 @@ teviram_acesso_hoje = teviram_acesso_hoje.loc[teviram_acesso_hoje.groupby(
 # removendo os acessos duplicados, para evitar que pessoas que deram entrada e saída mais de uma vez, sejam contabilizadas mais de uma vez.
 teviram_acesso_hoje = teviram_acesso_hoje.drop_duplicates(subset=[
                                                           'personName'])
-# mantendo apenas as colunas de nome da pessoa e nome do dispositivo, para facilitar a análise
-teviram_acesso_hoje = teviram_acesso_hoje
+
 
 # filtro de pessoas que deram entrada
 teve_acesso_de_entrada_hoje = teviram_acesso_hoje[teviram_acesso_hoje['deviceName'].isin(
