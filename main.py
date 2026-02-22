@@ -170,7 +170,6 @@ login_api_user = {
     "tenantId": "2785",  # especificando a conta de acesso
 }
 
-
 # requisição de login no end-point
 logado = requests.post(login_api, json=login_api_user)
 
@@ -257,6 +256,7 @@ acessos_hoje = requests.get(
     f'{base_rel}?pageSize=500&pageNumber=1&sortOrder=desc&sortField=Time&dtStart={data_hora_inicial}&dtEnd={data_hora_final}&getPhotos=false', headers=headers)
 
 
+
 acessos_hoje.json()
 # convertendo o resultado da requisição para json
 acessos_hoje = acessos_hoje.json()
@@ -316,6 +316,8 @@ saidas = [
 ]
 
 
+
+
 # Pegar ÚLTIMO evento de cada pessoa do dia,
 # para evitar que pessoas que deram entrada como ultimo registro, sejam contabilizadas.
 # por tanto o sistema entenderá que elas estão dentro da empresa,
@@ -323,8 +325,6 @@ teviram_acesso_hoje = teviram_acesso_hoje.loc[teviram_acesso_hoje.groupby(
     'personName')['time'].idxmax()]
 
 
-print('XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX  ',
-      teviram_acesso_hoje.loc[teviram_acesso_hoje['deviceName'] == 'Saida pedestre lado direito '])
 
 #################################################################################################################################################
 ############  INICIO------------------------            FILTROS para o PANDAS/STREAMLIT                                  ########################
@@ -390,6 +390,7 @@ ponto_de_encontro = teve_acesso_de_saida_hoje.loc[
 # definindo tela expansiva
 st.set_page_config(layout="wide") 
 
+
 col1, col2, col3, col4 = st.columns([2, 2, 2, 2]) # numero de colunas 4 cada uma com tamanha 2
 total_sem_saida = len(pessoas_sem_saida) # contagem de pessoas sem saida
 with col1:
@@ -453,9 +454,9 @@ with col1:
     st.subheader("📋 PESSOAS DENTRO")
 
     df_dentro = pessoas_sem_saida[['personName',
-                                   'deviceName',
-                                   'areaName',
-                                   'dateTime']].reset_index(drop=True)
+                                'deviceName',
+                                'areaName',
+                                'dateTime']].reset_index(drop=True)
     df_dentro.index = range(1, len(df_dentro) + 1)
 
     st.dataframe(
@@ -488,11 +489,18 @@ with col3:
 #################################################################################################################################################
 agora = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
 
-st.sidebar.image("assets\Decathlon_Logo.png")
+# =======================
+# SIDEBAR PERSONALIZADA
+# =======================
+with st.sidebar:
+    st.image("assets\Decathlon_Logo.png", width=140)
+
+    st.markdown("---")
+    st.sidebar.write('DATA ATUAL')
+    st.sidebar.write(agora)
+
 st.sidebar.divider()
 st.sidebar.divider()
-st.sidebar.write('DATA ATUAL')
-st.sidebar.write(agora)
 st.sidebar.divider()
 st.sidebar.divider()
 st.sidebar.divider()
