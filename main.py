@@ -21,11 +21,18 @@ from dotenv import load_dotenv
 from getpass import getpass
 from streamlit_autorefresh import st_autorefresh
 
+#________________________________________________________________________________________________________________________________________________
+#################################################################################################################################################
+#################################################################################################################################################
+############################################## EXECUÇÃO AUTOMATICA DEFINIDA PELO STREAMLIT  #####################################################
+#################################################################################################################################################
+#################################################################################################################################################
 
 # Atualiza a cada X segundos (30000 ms) = 30segundos
 st_autorefresh(interval=60000, key="auto_refresh")
 
-
+#________________________________________________________________________________________________________________________________________________
+#________________________________________________________________________________________________________________________________________________
 #################################################################################################################################################
 #################################################################################################################################################
 ############################################## DEFININDO AS FUNÇÕES QUE UTEIS DE APP  ###########################################################
@@ -79,38 +86,11 @@ def calcular_percentual(parte, total):
     return percentual
 
 
-# definindo uma função que trate colunas numeriacas para valores monetarios
-def formatar_coluna(valores):
-    # Convertendo para float
-    valores = valores.astype(float)
-    # Selecionando o primeiro valor (assumindo que você queira formatar apenas um valor)
-    valor_formatado = valores[0]
-    # Formatando como string com duas casas decimais e separadores de milhares
-    valor_formatado = f'{valor_formatado:_.2f}'
-    # Substituindo ponto por vírgula e underscore por ponto
-    valor_formatado = valor_formatado.replace('.', ',').replace('_', '.')
-
-    return valor_formatado
-
-
-def formatar_coluna_int(valores):
-    # Convertendo para float
-    valores = valores[0].astype(int)
-    # Selecionando o primeiro valor
-    valor_formatado = valores
-    # Formatando como string com zero casas decimais e atribuindo os  em "," separadores de milhares
-    valor_formatado = f'{valor_formatado:,.0f}'
-    # Substituindo ponto por vírgula e underscore por ponto
-    valor_formatado = valor_formatado.replace(',', '.')
-
-    return valor_formatado
-
-
 # Conversão de DATA E HORA no formato TIMESTAMP /  # definindo a função que convert TIMESTAMP >> DATA E HORA
 def convert_data_hora_para_timestamp(data_hora: str):
     # Substitua 'data_string' pela sua data e hora no formato 'AAAA-MM-DD HH:MM:SS'
     data_string = data_hora
-    formato = '%Y-%m-%d %H:%M'
+    formato = '%Y-%m-%d %H:%M:%S'
 
     # Convertendo a string de data e hora para um objeto datetime
     data_objeto = datetime.datetime.strptime(data_string, formato)
@@ -246,14 +226,14 @@ headers = {
 
 inicio_time_filtro = time.time()
 hoje = datetime.datetime.now()
-data_hora = hoje - timedelta(hours=3)
-hojeFotmated = data_hora.strftime('%Y-%m-%d %H:%M')
+data_hora = hoje  # - timedelta(hours=3)
+hojeFotmated = data_hora.strftime('%Y-%m-%d %H:%M:%S')
 
 # mesAnterior = hoje -  datetime.timedelta(days=30)
 # mesAnterior = mesAnterior.strftime('%Y-%m-%d 00:00')
 
 primeiraHoraHoje = data_hora
-primeiraHoraHoje = primeiraHoraHoje.strftime('%Y-%m-%d 00:01')
+primeiraHoraHoje = primeiraHoraHoje.strftime('%Y-%m-%d 00:00:01')
 
 # data_hora_inicial = input(f'Incio do relatório (Formato: {primeiraHoraHoje})   ')
 data_hora_inicial = primeiraHoraHoje
@@ -261,7 +241,7 @@ data_hora_inicial = str(convert_data_hora_para_timestamp(data_hora_inicial))
 
 
 data_hora_final = data_hora
-data_hora_final = data_hora_final.strftime('%Y-%m-%d 23:59')
+data_hora_final = data_hora_final.strftime('%Y-%m-%d 23:59:59')
 # data_hora_final = input(f'Data fim do relatório (Formato: {hojeFotmated})   ')
 # data_hora_final =hojeFotmated
 data_hora_final = str(convert_data_hora_para_timestamp(data_hora_final))
@@ -299,6 +279,7 @@ acessos_hoje = pd.DataFrame(acessos_hoje)
 saida_ = {
     'Saida pedestre lado direito': 'Saída pedestre lado direito',
     'Saida pedestre lado esquerdo': 'Saída pedestre lado esquerdo',
+
 }
 
 # removendo os espaços nos resultados de nomes de dispositivos
@@ -324,6 +305,8 @@ entradas = [
 
 # definindo uma lista para consulta de pessoas que deram saida
 saidas = [
+    'Saída pedestre lado esquerdo',
+    'Saída pedestre lado direito',
     'Saida pedestre lado direito',
     'Saida pedestre lado esquerdo',
     'Saída de carros lado externo',
@@ -340,33 +323,51 @@ teviram_acesso_hoje = teviram_acesso_hoje.loc[teviram_acesso_hoje.groupby(
     'personName')['time'].idxmax()]
 
 
+print('XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX  ',
+      teviram_acesso_hoje.loc[teviram_acesso_hoje['deviceName'] == 'Saida pedestre lado direito '])
+
 #################################################################################################################################################
 ############  INICIO------------------------            FILTROS para o PANDAS/STREAMLIT                                  ########################
 #################################################################################################################################################
 
 # removendo os acessos duplicados, para evitar que pessoas que deram entrada e saída mais de uma vez, sejam contabilizadas mais de uma vez.
+teviram_acesso_hoje['time'] = pd.to_datetime(
+    teviram_acesso_hoje['time'], utc=False, dayfirst=True, format='mixed', errors='ignore')
+teviram_acesso_hoje['dateTime'] = pd.to_datetime(
+    teviram_acesso_hoje['time'], errors='coerce')
+teviram_acesso_hoje['dateTime'] = teviram_acesso_hoje['dateTime'].dt.strftime(
+    '%d/%m/%Y %H:%M:%S')
+
+
 teviram_acesso_hoje = teviram_acesso_hoje.drop_duplicates(subset=[
                                                           'personName'])
 
 
 # filtro de pessoas que deram entrada
-teve_acesso_de_entrada_hoje = teviram_acesso_hoje[teviram_acesso_hoje['deviceName'].isin(
-    entradas)]
+teve_acesso_de_entrada_hoje = teviram_acesso_hoje.loc[(teviram_acesso_hoje['deviceName'].isin(entradas)) |
+                                                      (teviram_acesso_hoje['areaName'] == "Entrada Operação") |
+                                                      (teviram_acesso_hoje['areaName'] == "Saida Operação")].drop_duplicates(subset=[
+                                                          'personName'])
+
 
 # filtro de pessoas que deram saida
+
 teve_acesso_de_saida_hoje = teviram_acesso_hoje[teviram_acesso_hoje['deviceName'].isin(
     saidas)]
 
 
 # precisamos filtar pessoas que deram entada e não derem saída
+
 pessoas_sem_saida = teve_acesso_de_entrada_hoje[
     ~teve_acesso_de_entrada_hoje['personName'].isin(
         teve_acesso_de_saida_hoje['personName']
     )
 ]
 
+
 ponto_de_encontro = teve_acesso_de_saida_hoje.loc[
     teve_acesso_de_saida_hoje['deviceName'] == "Ponto de encontro"]
+
 
 #################################################################################################################################################
 ############  FIM------------------------            FILTROS para o PANDAS/STREAMLIT                                  ###########################
@@ -383,14 +384,14 @@ ponto_de_encontro = teve_acesso_de_saida_hoje.loc[
 
 
 #################################################################################################################################################
-###################################                   KPI'S (CARDS)                   ###########################################################
+########################################                   KPI'S (CARDS)                   ######################################################
 #################################################################################################################################################
 
+# definindo tela expansiva
+st.set_page_config(layout="wide") 
 
-st.set_page_config(layout="wide")
-
-col1, col2, col3, col4 = st.columns([2, 2, 2, 2])
-total_sem_saida = len(pessoas_sem_saida)
+col1, col2, col3, col4 = st.columns([2, 2, 2, 2]) # numero de colunas 4 cada uma com tamanha 2
+total_sem_saida = len(pessoas_sem_saida) # contagem de pessoas sem saida
 with col1:
     if total_sem_saida > 0:
         st.markdown(
@@ -400,7 +401,7 @@ with col1:
                 {total_sem_saida}
             </div>
             """,
-            unsafe_allow_html=True
+            unsafe_allow_html=True # importando os estilos de css
         )
     else:
         st.metric("Pessoas sem saída", total_sem_saida)
@@ -409,49 +410,52 @@ with col2:
     st.markdown(
         f"""
             <div class="card-green">
-                Já saíram <br>
+                🙋🏽‍♂️ Saíram <br>
                 {len(teve_acesso_de_saida_hoje)}
             </div>
             """,
-        unsafe_allow_html=True
+        unsafe_allow_html=True # importando os estilos de css
     )
 
 with col3:
     st.markdown(
         f"""
         <div class="card-blue">
-        Entradas/Saídas<br>
+        🚶🏽‍♂️Entradas/Saídas 🚶🏽‍♂️‍➡️<br>
         {len(teviram_acesso_hoje)}
         </div>
         """,
-        unsafe_allow_html=True
+        unsafe_allow_html=True # importando os estilos de css
     )
 
 with col4:
     st.markdown(
         f"""
         <div class="card-purple">
-        Ponto de Encontro<br>
+        👤Ponto de Encontro<br>
         {len(ponto_de_encontro)}
         <div>
         """,
         unsafe_allow_html=True
     )
 
-
+# importando os estilos de css
 st.markdown('<div class="divisor"></div>', unsafe_allow_html=True)
 # ______________________________________________________________________________________________
 
 #################################################################################################################################################
 ###################################                   BODY (DADOS)                     ##########################################################
 #################################################################################################################################################
-col1, col2, col3 = st.columns([3, 1, 2])
+col1, col2, col3 = st.columns([4, 0.1, 2])
 
+# coluna do body lado Esquerdo que expoe a tabela de pessoas que estão dentro do local de trabalho
 with col1:
-    st.subheader("🚨 PESSOAS DENTRO")
+    st.subheader("📋 PESSOAS DENTRO")
 
     df_dentro = pessoas_sem_saida[['personName',
-                                   'deviceName']].reset_index(drop=True)
+                                   'deviceName',
+                                   'areaName',
+                                   'dateTime']].reset_index(drop=True)
     df_dentro.index = range(1, len(df_dentro) + 1)
 
     st.dataframe(
@@ -459,14 +463,17 @@ with col1:
         use_container_width=True,
         height=400
     )
+    
+# coluna do body vazia, utilizada apenas para estilização da pagina
 with col2:
     st.empty()
 
-
+# coluna do body lado direito que expoe a tabela de saídas
 with col3:
-    st.subheader("✅ SAÍRAM")
+    st.subheader("📝 SAÍRAM")
 
-    df_saida = teve_acesso_de_saida_hoje[['personName']].reset_index(drop=True)
+    df_saida = teve_acesso_de_saida_hoje[[
+        'personName', 'dateTime']].reset_index(drop=True)
     df_saida.index = range(1, len(df_saida) + 1)
 
     st.dataframe(
@@ -479,5 +486,16 @@ with col3:
 #################################################################################################################################################
 ###################################                   SIDEBAR (FILTROS)                     #####################################################
 #################################################################################################################################################
-agora = datetime.datetime.now().strftime('%H:%M:%S')
+agora = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+
+st.sidebar.image("assets\Decathlon_Logo.png")
+st.sidebar.divider()
+st.sidebar.divider()
+st.sidebar.write('DATA ATUAL')
 st.sidebar.write(agora)
+st.sidebar.divider()
+st.sidebar.divider()
+st.sidebar.divider()
+st.sidebar.divider()
+st.sidebar.divider()
+st.sidebar.divider()
